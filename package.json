@@ -1,0 +1,23 @@
+{
+  "name": "variationsofacube",
+  "version": "0.0.1",
+  "description": "A geometric game inspired by Sol LeWitt's Variations of Incomplete Open Cubes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "geometry",
+    "game",
+    "puzzle"
+  ],
+  "author": "kratoze",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "three": "^0.108.0"
+  }
+}
