@@ -8,11 +8,12 @@ var vec,
   pos,
   mouse,
   targetZ = 0,
-  selection;
+  selection,
+  fourMoved = false;
 
 var isClicked = false;
 
-var line, points, correctPos;
+var line, playerLine, points, correctPos;
 
 init();
 animate();
@@ -50,45 +51,83 @@ function init() {
   var edges = new THREE.EdgesGeometry(cubeGeo);
 
   var verticesToRender = new Float32Array(24);
+  var verticesToControl = new Float32Array(24);
 
-  // Copying the lines we want in to an array - Make a new function for this
-  // for (let i = 0; i < verticesToRender.length; i++) {
-  //   verticesToRender[i] = edges.attributes.position.array[i + 6];
-  // }
+  // TODO: Move to a function and THINK OF A BETTER WAY JEEZE
+
+  // Copying the lines we want in to an array - positions in comments
+  // are relative but the cube will never rotate
+
+  // Middle vertex
   verticesToRender[0] = edges.attributes.position.array[7 * 3];
   verticesToRender[1] = edges.attributes.position.array[7 * 3 + 1];
   verticesToRender[2] = edges.attributes.position.array[7 * 3 + 2];
+  // Top vertex
   verticesToRender[3] = edges.attributes.position.array[6 * 3];
   verticesToRender[4] = edges.attributes.position.array[6 * 3 + 1];
   verticesToRender[5] = edges.attributes.position.array[6 * 3 + 2];
-
+  // Middle vertex
   verticesToRender[6] = edges.attributes.position.array[5 * 3];
   verticesToRender[7] = edges.attributes.position.array[5 * 3 + 1];
   verticesToRender[8] = edges.attributes.position.array[5 * 3 + 2];
+  // Right vertex
   verticesToRender[9] = edges.attributes.position.array[4 * 3];
   verticesToRender[10] = edges.attributes.position.array[4 * 3 + 1];
   verticesToRender[11] = edges.attributes.position.array[4 * 3 + 2];
-
+  // Middle vertex
   verticesToRender[12] = edges.attributes.position.array[22 * 3];
   verticesToRender[13] = edges.attributes.position.array[22 * 3 + 1];
   verticesToRender[14] = edges.attributes.position.array[22 * 3 + 2];
+  // Right vertex
   verticesToRender[15] = edges.attributes.position.array[23 * 3];
   verticesToRender[16] = edges.attributes.position.array[23 * 3 + 1];
   verticesToRender[17] = edges.attributes.position.array[23 * 3 + 2];
 
-  verticesToRender[18] = edges.attributes.position.array[23 * 3];
-  verticesToRender[19] = edges.attributes.position.array[23 * 3 + 1];
-  verticesToRender[20] = edges.attributes.position.array[23 * 3 + 2];
+  // Create lines that will be moved by the player
+  //
+  // These lines' vertices start off the same to make them invisible and
+  // the position will be changed by player
 
-  verticesToRender[21] = edges.attributes.position.array[23 * 3];
-  verticesToRender[22] = edges.attributes.position.array[23 * 3 + 1];
-  verticesToRender[23] = edges.attributes.position.array[23 * 3 + 2];
+  // Left vertex - player line
+  verticesToControl[0] = edges.attributes.position.array[23 * 3];
+  verticesToControl[1] = edges.attributes.position.array[23 * 3 + 1];
+  verticesToControl[2] = edges.attributes.position.array[23 * 3 + 2];
+  verticesToControl[3] = edges.attributes.position.array[23 * 3];
+  verticesToControl[4] = edges.attributes.position.array[23 * 3 + 1];
+  verticesToControl[5] = edges.attributes.position.array[23 * 3 + 2];
+  // Right vertex - player line
+  verticesToControl[6] = edges.attributes.position.array[4 * 3];
+  verticesToControl[7] = edges.attributes.position.array[4 * 3 + 1];
+  verticesToControl[8] = edges.attributes.position.array[4 * 3 + 2];
+  verticesToControl[9] = edges.attributes.position.array[4 * 3];
+  verticesToControl[10] = edges.attributes.position.array[4 * 3 + 1];
+  verticesToControl[11] = edges.attributes.position.array[4 * 3 + 2];
+  // Top
+  verticesToControl[12] = edges.attributes.position.array[6 * 3];
+  verticesToControl[13] = edges.attributes.position.array[6 * 3 + 1];
+  verticesToControl[14] = edges.attributes.position.array[6 * 3 + 2];
+  verticesToControl[15] = edges.attributes.position.array[6 * 3];
+  verticesToControl[16] = edges.attributes.position.array[6 * 3 + 1];
+  verticesToControl[17] = edges.attributes.position.array[6 * 3 + 2];
+  // Top - need 2 because top vertex will need to go to left and right
+  verticesToControl[18] = edges.attributes.position.array[6 * 3];
+  verticesToControl[19] = edges.attributes.position.array[6 * 3 + 1];
+  verticesToControl[20] = edges.attributes.position.array[6 * 3 + 2];
+  verticesToControl[21] = edges.attributes.position.array[6 * 3];
+  verticesToControl[22] = edges.attributes.position.array[6 * 3 + 1];
+  verticesToControl[23] = edges.attributes.position.array[6 * 3 + 2];
 
   // Use array to create new Geometry with the lines we want to render
   var renderedEdges = new THREE.BufferGeometry();
   renderedEdges.addAttribute(
     "position",
     new THREE.BufferAttribute(verticesToRender, 3)
+  );
+
+  var controlledEdges = new THREE.BufferGeometry();
+  controlledEdges.addAttribute(
+    "position",
+    new THREE.BufferAttribute(verticesToControl, 3)
   );
 
   line = new THREE.LineSegments(
@@ -98,6 +137,15 @@ function init() {
       linewidth: 1
     })
   );
+
+  playerLine = new THREE.LineSegments(
+    controlledEdges,
+    new THREE.LineBasicMaterial({
+      color: 0x000000,
+      linewidth: 1
+    })
+  );
+
   var line2 = new THREE.LineSegments(
     edges,
     new THREE.LineBasicMaterial({
@@ -108,9 +156,10 @@ function init() {
   );
   line2.position.set(40, 0, 0);
 
+  scene.add(playerLine);
   scene.add(line);
 
-  points = new THREE.Points(line.geometry);
+  points = new THREE.Points(playerLine.geometry);
   points.material.size = 10;
   points.material.colorWrite = false;
   scene.add(points);
@@ -136,12 +185,12 @@ function render() {
   raycaster.setFromCamera(mouse, camera);
 
   if (isClicked && selection != null) {
-    line.geometry.attributes.position.array[selection * 3] = pos.x;
-    line.geometry.attributes.position.array[selection * 3 + 1] = pos.y;
-    line.geometry.attributes.position.array[selection * 3 + 2] = pos.z;
+    playerLine.geometry.attributes.position.array[selection * 3] = pos.x;
+    playerLine.geometry.attributes.position.array[selection * 3 + 1] = pos.y;
+    playerLine.geometry.attributes.position.array[selection * 3 + 2] = pos.z;
   }
 
-  line.geometry.attributes.position.needsUpdate = true;
+  playerLine.geometry.attributes.position.needsUpdate = true;
 
   renderer.render(scene, camera);
 }
@@ -190,9 +239,18 @@ function onClick() {
     if (intersects.length > 0) {
       isClicked = true;
       selection = intersects[0].index;
-      if (selection === 5) selection = 6;
-      targetZ = line.geometry.attributes.position.array[selection * 3 + 2];
+      if (selection === 5 && !fourMoved) {
+        console.log("5");
+        selection = 4;
+        fourMoved = true;
+      } else if (selection === 5 && fourMoved) {
+        selection = 6;
+      } else if (selection === 4) {
+        fourMoved = true;
+      }
       console.log(selection);
+      targetZ =
+        playerLine.geometry.attributes.position.array[selection * 3 + 2];
     }
   } else {
     isClicked = false;
@@ -202,6 +260,5 @@ function onClick() {
 
 function animate() {
   requestAnimationFrame(animate);
-
   render();
 }
