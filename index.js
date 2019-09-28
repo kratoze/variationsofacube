@@ -1,7 +1,7 @@
 // Install express server
 const express = require("express");
 const path = require("path");
-var THREE = require("three");
+
 // Initialise express app
 const app = express();
 const router = express.Router();

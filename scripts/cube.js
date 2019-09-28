@@ -8,8 +8,7 @@ var vec,
   pos,
   mouse,
   targetZ = 0,
-  selection,
-  INTERSECTED;
+  selection;
 
 var isClicked = false;
 
@@ -50,31 +49,40 @@ function init() {
   cubeGeo.rotateX(0.785398);
   var edges = new THREE.EdgesGeometry(cubeGeo);
 
-  var verticesToRender = new Float32Array(6);
+  var verticesToRender = new Float32Array(24);
 
   // Copying the lines we want in to an array - Make a new function for this
   // for (let i = 0; i < verticesToRender.length; i++) {
   //   verticesToRender[i] = edges.attributes.position.array[i + 6];
   // }
-  verticesToRender[0] = edges.attributes.position.array[5 * 3];
-  verticesToRender[1] = edges.attributes.position.array[5 * 3 + 1];
-  verticesToRender[2] = edges.attributes.position.array[5 * 3 + 2];
-  verticesToRender[3] = edges.attributes.position.array[7 * 3];
-  verticesToRender[4] = edges.attributes.position.array[7 * 3 + 1];
-  verticesToRender[5] = edges.attributes.position.array[7 * 3 + 2];
-  // verticesToRender[6] = edges.attributes.position.array[7];
-  // verticesToRender[7] = edges.attributes.position.array[7];
-  // verticesToRender[8] = edges.attributes.position.array[7];
-  // verticesToRender[9] = edges.attributes.position.array[7];
-  // verticesToRender[10] = edges.attributes.position.array[7];
-  // verticesToRender[11] = edges.attributes.position.array[7];
-  // verticesToRender[12] = edges.attributes.position.array[7];
-  // verticesToRender[13] = edges.attributes.position.array[7];
-  // verticesToRender[14] = edges.attributes.position.array[7];
-  // verticesToRender[15] = edges.attributes.position.array[7];
-  // verticesToRender[16] = edges.attributes.position.array[7];
-  // verticesToRender[17] = edges.attributes.position.array[7];
-  // verticesToRender[18] = edges.attributes.position.array[7];
+  verticesToRender[0] = edges.attributes.position.array[7 * 3];
+  verticesToRender[1] = edges.attributes.position.array[7 * 3 + 1];
+  verticesToRender[2] = edges.attributes.position.array[7 * 3 + 2];
+  verticesToRender[3] = edges.attributes.position.array[6 * 3];
+  verticesToRender[4] = edges.attributes.position.array[6 * 3 + 1];
+  verticesToRender[5] = edges.attributes.position.array[6 * 3 + 2];
+
+  verticesToRender[6] = edges.attributes.position.array[5 * 3];
+  verticesToRender[7] = edges.attributes.position.array[5 * 3 + 1];
+  verticesToRender[8] = edges.attributes.position.array[5 * 3 + 2];
+  verticesToRender[9] = edges.attributes.position.array[4 * 3];
+  verticesToRender[10] = edges.attributes.position.array[4 * 3 + 1];
+  verticesToRender[11] = edges.attributes.position.array[4 * 3 + 2];
+
+  verticesToRender[12] = edges.attributes.position.array[22 * 3];
+  verticesToRender[13] = edges.attributes.position.array[22 * 3 + 1];
+  verticesToRender[14] = edges.attributes.position.array[22 * 3 + 2];
+  verticesToRender[15] = edges.attributes.position.array[23 * 3];
+  verticesToRender[16] = edges.attributes.position.array[23 * 3 + 1];
+  verticesToRender[17] = edges.attributes.position.array[23 * 3 + 2];
+
+  verticesToRender[18] = edges.attributes.position.array[23 * 3];
+  verticesToRender[19] = edges.attributes.position.array[23 * 3 + 1];
+  verticesToRender[20] = edges.attributes.position.array[23 * 3 + 2];
+
+  verticesToRender[21] = edges.attributes.position.array[23 * 3];
+  verticesToRender[22] = edges.attributes.position.array[23 * 3 + 1];
+  verticesToRender[23] = edges.attributes.position.array[23 * 3 + 2];
 
   // Use array to create new Geometry with the lines we want to render
   var renderedEdges = new THREE.BufferGeometry();
@@ -84,7 +92,7 @@ function init() {
   );
 
   line = new THREE.LineSegments(
-    edges,
+    renderedEdges,
     new THREE.LineBasicMaterial({
       color: 0x000000,
       linewidth: 1
@@ -99,14 +107,12 @@ function init() {
     })
   );
   line2.position.set(40, 0, 0);
-  //line.position.set(20, 150, 0);
 
-  // line.geometry.attributes.position.array[selection[0]] = -35;
-  // line.geometry.attributes.position.array[selection[1]] = 0;
   scene.add(line);
 
   points = new THREE.Points(line.geometry);
-
+  points.material.size = 10;
+  points.material.colorWrite = false;
   scene.add(points);
   correctPos = new THREE.Vector3(
     line.geometry.attributes.position.array[0],
@@ -184,7 +190,9 @@ function onClick() {
     if (intersects.length > 0) {
       isClicked = true;
       selection = intersects[0].index;
+      if (selection === 5) selection = 6;
       targetZ = line.geometry.attributes.position.array[selection * 3 + 2];
+      console.log(selection);
     }
   } else {
     isClicked = false;
