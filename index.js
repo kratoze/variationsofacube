@@ -9,17 +9,9 @@ const router = express.Router();
 // Serve static pages
 app.use(express.static("./"));
 
-// Add API Routes
-app.use("/api", router);
-
 // Specify public page entry point
 app.get("/", function(req, res) {
   res.sendFile(path.join("/index.html"));
-});
-
-// Serve backend route
-app.get("/api", function(req, res) {
-  res.status(200).send("Hello World API");
 });
 
 // Specify port
