@@ -16,7 +16,7 @@ var zeroMoved = false,
 
 var isClicked = false;
 
-var line, playerLine, points, correctPos;
+var edges, line, playerLine, points, correctPoints;
 
 init();
 animate();
@@ -53,19 +53,13 @@ function init() {
   cubeGeo.rotateY(0.785398);
   cubeGeo.rotateX(0.785398);
   // Store edges of cube geometery
-  var edges = new THREE.EdgesGeometry(cubeGeo);
+  edges = new THREE.EdgesGeometry(cubeGeo);
 
   // Creat array for the lines we want to render
   var verticesToRender = new Float32Array(24);
   // Create array for the lines that can be moved
-  var verticesToControl = new Float32Array(36);
-  // Create array for the vertices that will complete the cube
-  // This will be the difference between the edges (the complete cube) and
-  // the
-  var correctVertices = new Float32Array(
-    edges.attributes.position.array.length - verticesToRender.length
-  );
-  console.log(correctVertices.length);
+  var verticesToControl = new Float32Array(54);
+
   // TODO: Move to a function and THINK OF A BETTER WAY JEEZE
 
   // Copying the lines we want in to an array - positions in comments
@@ -99,7 +93,6 @@ function init() {
   // Create lines that will be moved by the player
   // These lines' vertices start off the same to make them invisible and
   // the position will be changed by player
-
   // Left vertex - player line
   verticesToControl[0] = edges.attributes.position.array[23 * 3];
   verticesToControl[1] = edges.attributes.position.array[23 * 3 + 1];
@@ -142,17 +135,27 @@ function init() {
   verticesToControl[33] = edges.attributes.position.array[4 * 3];
   verticesToControl[34] = edges.attributes.position.array[4 * 3 + 1];
   verticesToControl[35] = edges.attributes.position.array[4 * 3 + 2];
-
-  // The missing vertices will be the difference between the Edges vertices
-  // and the vertices to control
-  var tmpVerticesArray = [...verticesToRender];
-  correctVertices = edges.attributes.position.array.filter(
-    vertex => !tmpVerticesArray.includes(vertex)
-  );
-
-  console.log(correctVertices);
-  console.log(edges.attributes.position.array);
-  tmpVerticesArray = null;
+  // Top left
+  verticesToControl[36] = edges.attributes.position.array[8 * 3];
+  verticesToControl[37] = edges.attributes.position.array[8 * 3 + 1];
+  verticesToControl[38] = edges.attributes.position.array[8 * 3 + 2];
+  verticesToControl[39] = edges.attributes.position.array[8 * 3];
+  verticesToControl[40] = edges.attributes.position.array[8 * 3 + 1];
+  verticesToControl[41] = edges.attributes.position.array[8 * 3 + 2];
+  // Top right
+  verticesToControl[42] = edges.attributes.position.array[0 * 3];
+  verticesToControl[43] = edges.attributes.position.array[0 * 3 + 1];
+  verticesToControl[44] = edges.attributes.position.array[0 * 3 + 2];
+  verticesToControl[45] = edges.attributes.position.array[0 * 3];
+  verticesToControl[46] = edges.attributes.position.array[0 * 3 + 1];
+  verticesToControl[47] = edges.attributes.position.array[0 * 3 + 2];
+  // Top front
+  verticesToControl[48] = edges.attributes.position.array[11 * 3];
+  verticesToControl[49] = edges.attributes.position.array[11 * 3 + 1];
+  verticesToControl[50] = edges.attributes.position.array[11 * 3 + 2];
+  verticesToControl[51] = edges.attributes.position.array[11 * 3];
+  verticesToControl[52] = edges.attributes.position.array[11 * 3 + 1];
+  verticesToControl[53] = edges.attributes.position.array[11 * 3 + 2];
   // Use array to create new Geometry with the lines we want to render
   var renderedEdges = new THREE.BufferGeometry();
   renderedEdges.addAttribute(
@@ -192,20 +195,12 @@ function init() {
   );
   line2.position.set(40, 0, 0);
 
-  var testCorrectVertices = new THREE.BufferGeometry();
-  testCorrectVertices.addAttribute(
-    "position",
-    new THREE.BufferAttribute(correctVertices, 3)
-  );
-
-  var testPoint = new THREE.Points(testCorrectVertices);
-  testPoint.material.size = 10;
-
   points = new THREE.Points(playerLine.geometry);
+  correctPoints = new THREE.Points(edges);
 
-  scene.add(testPoint);
   scene.add(line);
   scene.add(playerLine);
+  scene.add(correctPoints);
 
   window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -254,12 +249,14 @@ function mouseMove(event) {
 
 function onClick() {
   points.geometry.computeBoundingSphere();
-  intersects = raycaster.intersectObject(points);
 
   if (!isClicked) {
+    intersects = raycaster.intersectObject(points);
+
     if (intersects.length > 0) {
       isClicked = true;
       selection = intersects[0].index;
+      console.log(selection);
       // Force the selection so only one end of a line can be moved
       // Otherwise player can deconstruct the cube
       if (selection === 4 && !fourMoved) {
@@ -282,7 +279,32 @@ function onClick() {
         playerLine.geometry.attributes.position.array[selection * 3 + 2];
     }
   } else {
-    //intersects = raycaster.intersectObject(correctVertices);
+    intersects = raycaster.intersectObject(correctPoints);
+
+    if (intersects.length > 0) {
+      console.log(intersects[0].index);
+      var correctPos = {
+        x:
+          correctPoints.geometry.attributes.position.array[
+            intersects[0].index * 3
+          ],
+        y:
+          correctPoints.geometry.attributes.position.array[
+            intersects[0].index * 3 + 1
+          ],
+        z:
+          correctPoints.geometry.attributes.position.array[
+            intersects[0].index * 3 + 2
+          ]
+      };
+
+      playerLine.geometry.attributes.position.array[selection * 3] =
+        correctPos.x;
+      playerLine.geometry.attributes.position.array[selection * 3 + 1] =
+        correctPos.y;
+      playerLine.geometry.attributes.position.array[selection * 3 + 2] =
+        correctPos.z;
+    }
 
     isClicked = false;
     selection = null;
