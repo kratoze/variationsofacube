@@ -1,1 +1,0 @@
-class BasicCube extends BoxGeometry
