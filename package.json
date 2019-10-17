@@ -15,7 +15,8 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "three": "^0.108.0"
   },
   "devDependencies": {
     "three": "^0.108.0"
